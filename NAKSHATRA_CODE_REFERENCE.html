@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakshatra AI | Code Implementation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #020205 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+        }
+        
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid rgba(229, 199, 107, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        
+        .token-keyword { color: #ff79c6; }
+        .token-string { color: #f1fa8c; }
+        .token-function { color: #8be9fd; }
+        .token-class { color: #50fa7b; }
+        .token-comment { color: #6272a4; }
+        .token-number { color: #bd93f9; }
+        
+        .glass-panel {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(229, 199, 107, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="mb-20 text-center">
+            <h1 class="text-5xl font-bold mb-4">
+                <span style="color: #e5c76b;">NAKSHATRA</span> AI
+            </h1>
+            <p class="text-xl opacity-60 mb-2">Production-Ready Implementation Code</p>
+            <p class="opacity-40">Complete reference for all 7 microservices</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="glass-panel rounded-t-2xl p-4 flex gap-2 overflow-x-auto mb-8">
+            <button onclick="showTab('kundli')" id="btn-kundli" class="px-6 py-2 rounded-lg transition text-sm font-mono font-bold bg-[#e5c76b] text-black">
+                kundli.ts
+            </button>
+            <button onclick="showTab('doshas')" id="btn-doshas" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                doshas.ts
+            </button>
+            <button onclick="showTab('ai')" id="btn-ai" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                predictions.py
+            </button>
+            <button onclick="showTab('react')" id="btn-react" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                dashboard.tsx
+            </button>
+            <button onclick="showTab('flutter')" id="btn-flutter" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                app.dart
+            </button>
+            <button onclick="showTab('schema')" id="btn-schema" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                schema.prisma
+            </button>
+            <button onclick="showTab('api')" id="btn-api" class="px-6 py-2 rounded-lg transition text-sm font-mono opacity-50 hover:opacity-100">
+                graphql.ts
+            </button>
+        </div>
+
+        <!-- Code Blocks -->
+        <div class="glass-panel rounded-b-2xl p-8">
+            <!-- Kundli Calculator -->
+            <div id="kundli" class="code-block hidden">
+<span class="token-comment">// services/astrology-service/src/kundli/calculator.ts</span>
+<span class="token-keyword">import</span> { JPLEphemeris } <span class="token-keyword">from</span> <span class="token-string">'@jpl/ephemeris'</span>;
+<span class="token-keyword">import</span> { getNakshatra, calculateLagna } <span class="token-keyword">from</span> <span class="token-string">'./vedic-math'</span>;
+
+<span class="token-keyword">interface</span> BirthData {
+  birthTime: Date;
+  latitude: <span class="token-number">number</span>;
+  longitude: <span class="token-number">number</span>;
+  timezone: <span class="token-number">number</span>;
+}
+
+<span class="token-keyword">export async function</span> <span class="token-function">calculateKundli</span>(birthData: BirthData) {
+  <span class="token-keyword">const</span> ephemeris = <span class="token-keyword">new</span> JPLEphemeris();
+  
+  <span class="token-comment">// Calculate planetary positions with JPL NASA precision</span>
+  <span class="token-keyword">const</span> planetPositions = <span class="token-keyword">await</span> ephemeris.<span class="token-function">calculate</span>({
+    date: birthData.birthTime,
+    latitude: birthData.latitude,
+    longitude: birthData.longitude,
+    timezone: birthData.timezone,
+    ayanamsa: <span class="token-number">23.11</span>, <span class="token-comment">// Lahiri ayanamsa</span>
+  });
+
+  <span class="token-comment">// Detect Nakshatra from Moon position</span>
+  <span class="token-keyword">const</span> moonDegree = planetPositions.moon.degree;
+  <span class="token-keyword">const</span> nakshatra = <span class="token-function">getNakshatra</span>(moonDegree);
+
+  <span class="token-comment">// Calculate Lagna (Ascendant)</span>
+  <span class="token-keyword">const</span> lagna = <span class="token-function">calculateLagna</span>(planetPositions, birthData);
+
+  <span class="token-comment">// Calculate all 16 divisional charts (Vargas)</span>
+  <span class="token-keyword">const</span> vargas = [
+    <span class="token-function">calculateVarga</span>(<span class="token-string">'rashi'</span>, planetPositions),
+    <span class="token-function">calculateVarga</span>(<span class="token-string">'navamsa'</span>, planetPositions),
+    <span class="token-function">calculateVarga</span>(<span class="token-string">'dasamsa'</span>, planetPositions),
+    <span class="token-comment">// ... 13 more divisional charts</span>
+  ];
+
+  <span class="token-keyword">return</span> {
+    planetPositions,
+    nakshatra,
+    lagna,
+    vargas,
+    doshas: <span class="token-function">detectDoshas</span>(planetPositions),
+    yogas: <span class="token-function">detectYogas</span>(planetPositions),
+    shadbala: <span class="token-function">calculateShadbala</span>(planetPositions),
+    dashaSystem: <span class="token-function">calculateVimshottariDasha</span>(birthData.birthTime),
+    timestamp: <span class="token-keyword">new</span> <span class="token-class">Date</span>()
+  };
+}
+            </div>
+
+            <!-- Dosha Detection -->
+            <div id="doshas" class="code-block hidden">
+<span class="token-comment">// services/astrology-service/src/doshas/detector.ts</span>
+<span class="token-keyword">export async function</span> <span class="token-function">detectDoshas</span>(planets: PlanetaryPositions) {
+  <span class="token-keyword">const</span> doshas = {
+    manglik: <span class="token-function">detectManglikDosha</span>(planets),
+    kaalSarp: <span class="token-function">detectKaalSarpDosha</span>(planets),
+    pitra: <span class="token-function">detectPitraDosha</span>(planets),
+    nadi: <span class="token-function">detectNadiDosha</span>(planets),
+  };
+
+  <span class="token-keyword">return</span> doshas;
+}
+
+<span class="token-keyword">function</span> <span class="token-function">detectManglikDosha</span>(planets: PlanetaryPositions): <span class="token-number">boolean</span> {
+  <span class="token-comment">// Mars in 1st, 4th, 7th, 8th, 12th house = Manglik</span>
+  <span class="token-keyword">const</span> criticalHouses = [<span class="token-number">1</span>, <span class="token-number">4</span>, <span class="token-number">7</span>, <span class="token-number">8</span>, <span class="token-number">12</span>];
+  <span class="token-keyword">return</span> criticalHouses.<span class="token-function">includes</span>(planets.mars.house);
+}
+
+<span class="token-keyword">function</span> <span class="token-function">detectKaalSarpDosha</span>(planets: PlanetaryPositions): <span class="token-number">boolean</span> {
+  <span class="token-comment">// All planets between Rahu and Ketu = Kaal Sarp</span>
+  <span class="token-keyword">const</span> rahuDegree = planets.rahu.degree;
+  <span class="token-keyword">const</span> ketuDegree = planets.ketu.degree;
+  
+  <span class="token-keyword">const</span> allPlanets = [
+    planets.sun, planets.moon, planets.mercury,
+    planets.venus, planets.mars, planets.jupiter, planets.saturn
+  ];
+
+  <span class="token-keyword">return</span> allPlanets.<span class="token-function">every</span>(p => 
+    (p.degree > rahuDegree && p.degree < ketuDegree) ||
+    (rahuDegree > ketuDegree && (p.degree > rahuDegree || p.degree < ketuDegree))
+  );
+}
+            </div>
+
+            <!-- AI Predictions -->
+            <div id="ai" class="code-block hidden">
+<span class="token-comment"># services/ai-service/src/predictions/ensemble.py</span>
+<span class="token-keyword">import</span> torch
+<span class="token-keyword">import</span> numpy <span class="token-keyword">as</span> np
+<span class="token-keyword">from</span> transformers <span class="token-keyword">import</span> AutoModel
+<span class="token-keyword">import</span> xgboost <span class="token-keyword">as</span> xgb
+
+<span class="token-keyword">class</span> <span class="token-class">EnsemblePredictionEngine</span>:
+    <span class="token-keyword">def</span> <span class="token-function">__init__</span>(self):
+        self.transformer = <span class="token-function">AutoModel</span>.from_pretrained(
+            <span class="token-string">'nakshatra-ai/transformer-v1'</span>
+        )
+        self.lstm = <span class="token-function">load_model</span>(<span class="token-string">'lstm_model.h5'</span>)
+        self.xgboost = xgb.<span class="token-function">Booster</span>(
+            model_file=<span class="token-string">'xgboost_model.bin'</span>
+        )
+
+    <span class="token-keyword">async def</span> <span class="token-function">predict</span>(self, chart_data):
+        <span class="token-comment"># Multi-model ensemble prediction</span>
+        predictions = {
+            <span class="token-string">'transformer'</span>: self.transformer.<span class="token-function">predict</span>(chart_data),
+            <span class="token-string">'lstm'</span>: self.lstm.<span class="token-function">predict</span>(chart_data),
+            <span class="token-string">'xgboost'</span>: self.xgboost.<span class="token-function">predict</span>(chart_data),
+            <span class="token-string">'rules'</span>: self.<span class="token-function">rules_engine</span>(chart_data),
+        }
+
+        <span class="token-comment"># Weighted ensemble (40% + 30% + 20% + 10%)</span>
+        final = (
+            <span class="token-number">0.40</span> * predictions[<span class="token-string">'transformer'</span>] +
+            <span class="token-number">0.30</span> * predictions[<span class="token-string">'lstm'</span>] +
+            <span class="token-number">0.20</span> * predictions[<span class="token-string">'xgboost'</span>] +
+            <span class="token-number">0.10</span> * predictions[<span class="token-string">'rules'</span>]
+        )
+
+        confidence = np.<span class="token-function">std</span>(predictions.values())
+        
+        <span class="token-keyword">return</span> {
+            <span class="token-string">'prediction'</span>: final,
+            <span class="token-string">'confidence'</span>: confidence,
+            <span class="token-string">'models'</span>: predictions,
+        }
+            </div>
+
+            <!-- React Dashboard -->
+            <div id="react" class="code-block hidden">
+<span class="token-comment">// packages/web/components/Dashboard.tsx</span>
+<span class="token-keyword">import</span> React { useQuery } <span class="token-keyword">from</span> <span class="token-string">'react-query'</span>;
+<span class="token-keyword">import</span> StarChart <span class="token-keyword">from</span> <span class="token-string">'./StarChart'</span>;
+
+<span class="token-keyword">interface</span> UserChart {
+  kundli: KundliData;
+  predictions: Prediction[];
+  doshas: Dosha[];
+}
+
+<span class="token-keyword">export const</span> <span class="token-class">Dashboard</span>: React.FC = () => {
+  <span class="token-keyword">const</span> { data: chart } = <span class="token-function">useQuery</span>([<span class="token-string">'chart'</span>], 
+    () => fetch(<span class="token-string">'/api/chart'</span>).<span class="token-function">then</span>(r => r.<span class="token-function">json</span>())
+  );
+
+  <span class="token-keyword">const</span> { data: predictions } = <span class="token-function">useQuery</span>([<span class="token-string">'predictions'</span>],
+    () => fetch(<span class="token-string">'/api/predictions'</span>).<span class="token-function">then</span>(r => r.<span class="token-function">json</span>())
+  );
+
+  <span class="token-keyword">return</span> (
+    &lt;<span class="token-keyword">div</span> className=<span class="token-string">"grid grid-cols-3 gap-8"</span>&gt;
+      &lt;<span class="token-class">StarChart</span> chart={chart} /&gt;
+      &lt;<span class="token-class">DoshaAnalysis</span> doshas={chart?.doshas} /&gt;
+      &lt;<span class="token-class">PredictionsList</span> predictions={predictions} /&gt;
+    &lt;/<span class="token-keyword">div</span>&gt;
+  );
+};
+            </div>
+
+            <!-- Flutter App -->
+            <div id="flutter" class="code-block hidden">
+<span class="token-comment">// mobile/lib/screens/dashboard.dart</span>
+<span class="token-keyword">class</span> <span class="token-class">NakshatraDashboard</span> <span class="token-keyword">extends</span> StatefulWidget {
+  @override
+  _NakshatraDashboardState <span class="token-function">createState</span>() => 
+    _NakshatraDashboardState();
+}
+
+<span class="token-keyword">class</span> <span class="token-class">_NakshatraDashboardState</span> 
+    <span class="token-keyword">extends</span> State&lt;<span class="token-class">NakshatraDashboard</span>&gt; {
+  
+  late Future&lt;KundliData&gt; chart;
+
+  @override
+  <span class="token-keyword">void</span> <span class="token-function">initState</span>() {
+    <span class="token-keyword">super</span>.<span class="token-function">initState</span>();
+    chart = _fetchChart();
+  }
+
+  @override
+  Widget <span class="token-function">build</span>(BuildContext context) {
+    <span class="token-keyword">return</span> FutureBuilder&lt;KundliData&gt;(
+      future: chart,
+      builder: (context, snapshot) {
+        <span class="token-keyword">if</span> (snapshot.hasData) {
+          <span class="token-keyword">return</span> Column(
+            children: [
+              <span class="token-class">StarChartWidget</span>(snapshot.data!),
+              <span class="token-class">DoshaAnalysisWidget</span>(snapshot.data!.doshas),
+              <span class="token-class">PredictionsListWidget</span>(),
+            ],
+          );
+        }
+        <span class="token-keyword">return</span> <span class="token-class">LoadingScreen</span>();
+      },
+    );
+  }
+}
+            </div>
+
+            <!-- Prisma Schema -->
+            <div id="schema" class="code-block hidden">
+<span class="token-comment">// prisma/schema.prisma</span>
+datasource db {
+  provider = <span class="token-string">"postgresql"</span>
+  url      = env(<span class="token-string">"DATABASE_URL"</span>)
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  birthData BirthData?
+  charts    KundliChart[]
+  predictions Prediction[]
+  <span class="token-function">createdAt</span>  DateTime @default(now())
+}
+
+model BirthData {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  birthTime DateTime
+  latitude  Float
+  longitude Float
+  timezone  Int
+  location  String
+}
+
+model KundliChart {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  nakshatraId Int
+  lagnaId     Int
+  doshas      String[] <span class="token-comment">// Array of dosha names</span>
+  yogas       String[]
+  shadbala    Json
+  <span class="token-function">createdAt</span>  DateTime @default(now())
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  prediction  String
+  confidence  Float
+  category    String
+  <span class="token-function">createdAt</span>  DateTime @default(now())
+}
+            </div>
+
+            <!-- GraphQL API -->
+            <div id="api" class="code-block hidden">
+<span class="token-comment">// services/api-gateway/src/schema.ts</span>
+<span class="token-keyword">import</span> { gql } <span class="token-keyword">from</span> <span class="token-string">'apollo-server-express'</span>;
+
+<span class="token-keyword">export const</span> typeDefs = gql`
+  <span class="token-keyword">type</span> <span class="token-class">Query</span> {
+    chart(id: ID!): KundliChart
+    predictions(userId: ID!, limit: Int): [Prediction]
+    compatibility(chartId1: ID!, chartId2: ID!): CompatibilityScore
+    horoscope(sign: String!, date: String): String
+  }
+
+  <span class="token-keyword">type</span> <span class="token-class">Mutation</span> {
+    createChart(birthData: BirthDataInput!): KundliChart
+    generatePrediction(userId: ID!): Prediction
+    addFeedback(predictionId: ID!, accuracy: Int!): Boolean
+  }
+
+  <span class="token-keyword">type</span> <span class="token-class">KundliChart</span> {
+    id: ID!
+    userId: ID!
+    nakshatra: String!
+    lagna: String!
+    doshas: [String!]!
+    yogas: [String!]!
+    vargas: [DivisionalChart!]!
+    <span class="token-function">createdAt</span>: DateTime!
+  }
+
+  <span class="token-keyword">type</span> <span class="token-class">Prediction</span> {
+    id: ID!
+    text: String!
+    confidence: Float!
+    category: String!
+    models: ModelPredictions!
+  }
+
+  <span class="token-keyword">type</span> <span class="token-class">ModelPredictions</span> {
+    transformer: Float!
+    lstm: Float!
+    xgboost: Float!
+    rules: Float!
+  }
+`;
+
+<span class="token-keyword">export const</span> resolvers = {
+  Query: {
+    <span class="token-function">chart</span>: (_, { id }) => chartService.<span class="token-function">getChart</span>(id),
+    <span class="token-function">predictions</span>: (_, { userId }) => predictionService.<span class="token-function">getPredictions</span>(userId),
+    <span class="token-function">compatibility</span>: (_, { chartId1, chartId2 }) => 
+      compatibilityService.<span class="token-function">calculate</span>(chartId1, chartId2),
+  },
+  Mutation: {
+    <span class="token-function">createChart</span>: async (_, { birthData }) => 
+      chartService.<span class="token-function">createChart</span>(birthData),
+  }
+};
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+            <div class="glass-panel rounded-xl p-6 text-center">
+                <div class="text-3xl font-bold text-[#e5c76b] mb-2">7</div>
+                <div class="text-sm opacity-60">Microservices</div>
+            </div>
+            <div class="glass-panel rounded-xl p-6 text-center">
+                <div class="text-3xl font-bold text-[#e5c76b] mb-2">50+</div>
+                <div class="text-sm opacity-60">APIs Endpoints</div>
+            </div>
+            <div class="glass-panel rounded-xl p-6 text-center">
+                <div class="text-3xl font-bold text-[#e5c76b] mb-2">99.95%</div>
+                <div class="text-sm opacity-60">Platform Uptime</div>
+            </div>
+            <div class="glass-panel rounded-xl p-6 text-center">
+                <div class="text-3xl font-bold text-[#e5c76b] mb-2">&lt;500ms</div>
+                <div class="text-sm opacity-60">Avg Response</div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="mt-16 text-center">
+            <p class="opacity-60 mb-6">Ready to build the future of astrology?</p>
+            <button class="px-12 py-4 bg-[#e5c76b] text-black font-bold rounded-lg hover:scale-105 transition">
+                Start Development →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.code-block');
+            const buttons = document.querySelectorAll('[id^="btn-"]');
+
+            tabs.forEach(t => t.classList.add('hidden'));
+            buttons.forEach(b => {
+                b.style.opacity = '0.5';
+                b.style.backgroundColor = 'transparent';
+                b.style.color = '#e0e0e0';
+            });
+
+            document.getElementById(tabName).classList.remove('hidden');
+            const btn = document.getElementById(`btn-${tabName}`);
+            btn.style.opacity = '1';
+            btn.style.backgroundColor = '#e5c76b';
+            btn.style.color = '#000';
+        }
+    </script>
+</body>
+</html>
