@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakshatra AI | Design Architecture & Implementation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#020205',
+                        celestial: '#E5C76B',
+                        nebula: '#4A148C',
+                        lunar: '#E0E0E0',
+                        void: '#1A1A2E',
+                        deepSpace: '#05070A',
+                        cosmicPurple: '#6B4EE6',
+                        nebulaPink: '#D64EAD',
+                        goldAura: '#FFD700',
+                    },
+                    fontFamily: {
+                        ancient: ['Cinzel Decorative', 'serif'],
+                        future: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Outfit', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 8s ease-in-out infinite',
+                        'spin-slow': 'spin 20s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+                            '50%': { transform: 'translateY(-20px) scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020205;
+            color: #E0E0E0;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(26, 26, 46, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(229, 199, 107, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(229, 199, 107, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px -10px rgba(229, 199, 107, 0.2);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 15px rgba(229, 199, 107, 0.5);
+        }
+
+        .nebula-bg {
+            background: radial-gradient(circle at 50% 50%, rgba(74, 20, 140, 0.15) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 20%, rgba(214, 78, 173, 0.1) 0%, transparent 50%);
+        }
+
+        .orb {
+            border-radius: 50%;
+            filter: blur(1px);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.4),
+                        0 0 20px currentColor;
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #E5C76B;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020205;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1A1A2E;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E5C76B;
+        }
+
+        .star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 1px, transparent 2px);
+            background-size: 150px 150px;
+            opacity: 0.1;
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #E5C76B;
+            color: #E5C76B;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-celestial selection:text-obsidian">
+    <div class="star-field"></div>
+    
+    <!-- Sidebar Navigation -->
+    <aside class="fixed left-0 top-0 h-full w-20 md:w-64 glass-panel z-50 transition-all duration-500 flex flex-col items-center md:items-start p-6 border-r border-white/5">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-celestial to-nebula animate-pulse-slow shadow-lg shadow-celestial/20"></div>
+            <span class="hidden md:block font-ancient text-xl tracking-widest text-celestial">NAKSHATRA</span>
+        </div>
+        
+        <nav class="flex flex-col gap-8 w-full">
+            <a href="#hero" class="nav-link flex items-center gap-4 text-sm font-medium opacity-70 hover:opacity-100 group">
+                <svg class="w-5 h-5 group-hover:text-celestial" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="hidden md:block">Overview</span>
+            </a>
+            <a href="#architecture" class="nav-link flex items-center gap-4 text-sm font-medium opacity-70 hover:opacity-100 group">
+                <svg class="w-5 h-5 group-hover:text-celestial" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.172-1.172a4 4 0 015.656 0l1.172 1.172a4 4 0 010 5.656l-1.172 1.172a4 4 0 01-5.656 0L11 7.343z"></path></svg>
+                <span class="hidden md:block">Architecture</span>
+            </a>
+            <a href="#features" class="nav-link flex items-center gap-4 text-sm font-medium opacity-70 hover:opacity-100 group">
+                <svg class="w-5 h-5 group-hover:text-celestial" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                <span class="hidden md:block">Features</span>
+            </a>
+            <a href="#gallery" class="nav-link flex items-center gap-4 text-sm font-medium opacity-70 hover:opacity-100 group">
+                <svg class="w-5 h-5 group-hover:text-celestial" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                <span class="hidden md:block">UI Wireframes</span>
+            </a>
+            <a href="#implementation" class="nav-link flex items-center gap-4 text-sm font-medium opacity-70 hover:opacity-100 group">
+                <svg class="w-5 h-5 group-hover:text-celestial" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <span class="hidden md:block">Implementation</span>
+            </a>
+        </nav>
+
+        <div class="mt-auto md:block hidden">
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <p class="text-[10px] uppercase tracking-widest text-white/40 mb-1">Version</p>
+                <p class="text-xs font-mono text-celestial">v2.0.26-prod</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="ml-20 md:ml-64 min-h-screen">
+        <!-- Hero Section -->
+        <section id="hero" class="relative h-screen flex items-center justify-center overflow-hidden nebula-bg px-6">
+            <div class="absolute inset-0 z-0">
+                <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-nebula/20 rounded-full blur-[100px] animate-pulse"></div>
+                <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-celestial/10 rounded-full blur-[100px] animate-float"></div>
+            </div>
+            
+            <div class="relative z-10 text-center max-w-4xl">
+                <span class="inline-block px-4 py-1 rounded-full border border-celestial/30 bg-celestial/5 text-celestial text-xs tracking-[4px] uppercase mb-8 animate-fade-in">Quantum Astrology Platform</span>
+                <h1 class="font-ancient text-5xl md:text-8xl mb-8 leading-tight tracking-tighter">
+                    <span class="block opacity-80">NAKSHATRA</span>
+                    <span class="text-celestial glow-text">AI ARCHITECTURE</span>
+                </h1>
+                <p class="font-future text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed mb-8">
+                    Production-ready platform architecture: JPL NASA precision × AI intelligence × Netflix UI/UX. Built to serve millions globally.
+                </p>
+                <div class="flex flex-col md:flex-row gap-6 justify-center">
+                    <button class="px-8 py-4 bg-celestial text-obsidian font-future font-bold rounded-full hover:scale-105 transition-transform duration-300 tracking-widest uppercase text-sm">Explore Now</button>
+                    <button class="px-8 py-4 glass-card font-future font-bold rounded-full hover:scale-105 transition-transform duration-300 tracking-widest uppercase text-sm border border-white/20">Documentation</button>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture" class="py-32 px-6 md:px-12 border-t border-white/5">
+            <div class="max-w-7xl mx-auto">
+                <header class="mb-20">
+                    <h2 class="font-ancient text-4xl mb-4">System Architecture</h2>
+                    <div class="w-20 h-1 bg-celestial"></div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                    <div class="glass-card p-12 rounded-[40px] flex flex-col justify-center">
+                        <h3 class="font-display text-3xl mb-6 text-celestial italic">Microservices Design</h3>
+                        <p class="text-white/70 leading-relaxed mb-8 text-lg">
+                            Distributed system with 7 specialized services, each optimized for specific domains. Kubernetes-orchestrated, cloud-native, infinitely scalable.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="w-2 h-2 bg-celestial rounded-full"></span>
+                                <span>API Gateway (GraphQL + REST)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="w-2 h-2 bg-celestial rounded-full"></span>
+                                <span>Astrology Service (Kundli Engine)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="w-2 h-2 bg-celestial rounded-full"></span>
+                                <span>AI Prediction Service (Multi-model)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="w-2 h-2 bg-celestial rounded-full"></span>
+                                <span>User Service (Auth + Profile)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="w-2 h-2 bg-celestial rounded-full"></span>
+                                <span>Analytics Service (Real-time tracking)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-[40px] p-12 flex flex-col justify-center">
+                        <h3 class="font-display text-3xl mb-6 text-celestial italic">Tech Stack</h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <p class="text-celestial font-bold mb-1">Frontend Layer</p>
+                                <p class="opacity-70">Next.js 14 + React 19 + Tailwind CSS + Three.js</p>
+                            </div>
+                            <div>
+                                <p class="text-celestial font-bold mb-1">Backend Layer</p>
+                                <p class="opacity-70">Node.js 22 + Express + GraphQL Apollo + TypeScript</p>
+                            </div>
+                            <div>
+                                <p class="text-celestial font-bold mb-1">AI/ML Layer</p>
+                                <p class="opacity-70">PyTorch + TensorFlow + Hugging Face + FastAPI</p>
+                            </div>
+                            <div>
+                                <p class="text-celestial font-bold mb-1">Database Layer</p>
+                                <p class="opacity-70">PostgreSQL 16 + Redis 7 + Pinecone + MongoDB</p>
+                            </div>
+                            <div>
+                                <p class="text-celestial font-bold mb-1">Infrastructure</p>
+                                <p class="opacity-70">Docker + Kubernetes + AWS/GCP + Terraform</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-[40px] p-10">
+                    <h3 class="font-display text-2xl mb-8">12-Month Development Phases</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="border-l-2 border-celestial pl-6 py-4">
+                            <p class="text-celestial font-bold text-lg mb-2">Phase 1</p>
+                            <p class="text-sm opacity-70">Foundation & MVP (M1-3)</p>
+                            <ul class="text-xs opacity-60 mt-4 space-y-1">
+                                <li>✓ Core Kundli engine</li>
+                                <li>✓ Authentication</li>
+                                <li>✓ Basic UI</li>
+                                <li>✓ 10K users</li>
+                            </ul>
+                        </div>
+                        <div class="border-l-2 border-celestial pl-6 py-4">
+                            <p class="text-celestial font-bold text-lg mb-2">Phase 2</p>
+                            <p class="text-sm opacity-70">AI Integration (M4-6)</p>
+                            <ul class="text-xs opacity-60 mt-4 space-y-1">
+                                <li>✓ Prediction engine</li>
+                                <li>✓ ML models</li>
+                                <li>✓ Chat interface</li>
+                                <li>✓ 100K users</li>
+                            </ul>
+                        </div>
+                        <div class="border-l-2 border-celestial pl-6 py-4">
+                            <p class="text-celestial font-bold text-lg mb-2">Phase 3</p>
+                            <p class="text-sm opacity-70">Advanced Features (M7-9)</p>
+                            <ul class="text-xs opacity-60 mt-4 space-y-1">
+                                <li>✓ 3D visualization</li>
+                                <li>✓ Multi-language</li>
+                                <li>✓ Mobile app</li>
+                                <li>✓ 500K users</li>
+                            </ul>
+                        </div>
+                        <div class="border-l-2 border-celestial pl-6 py-4">
+                            <p class="text-celestial font-bold text-lg mb-2">Phase 4</p>
+                            <p class="text-sm opacity-70">Scale & Optimize (M10-12)</p>
+                            <ul class="text-xs opacity-60 mt-4 space-y-1">
+                                <li>✓ Premium features</li>
+                                <li>✓ Monetization</li>
+                                <li>✓ Global launch</li>
+                                <li>✓ 1M+ users</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-32 px-6 md:px-12 bg-white/5">
+            <div class="max-w-7xl mx-auto">
+                <header class="mb-20">
+                    <h2 class="font-ancient text-4xl mb-4">Core Features</h2>
+                    <div class="w-20 h-1 bg-celestial"></div>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">🌙</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">Kundli Calculator</h3>
+                        <p class="text-sm opacity-70">JPL NASA ephemeris, 27 Nakshatras, 16 divisional charts, real-time planetary calculations with ±0.001° precision.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">🤖</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">AI Predictions</h3>
+                        <p class="text-sm opacity-70">Multi-model ensemble (Transformer, LSTM, XGBoost), confidence scoring, emotional intelligence layer.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">🌌</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">3D Visualization</h3>
+                        <p class="text-sm opacity-70">Real-time celestial rendering, interactive star charts, animated planetary positions, immersive cosmic UI.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">💬</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">AI Chat Astrologer</h3>
+                        <p class="text-sm opacity-70">Natural conversation, chart analysis, relationship advice, career guidance, personalized insights.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">💑</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">Compatibility Engine</h3>
+                        <p class="text-sm opacity-70">Kundli matching, emotional compatibility, communication analysis, relationship scoring.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[30px] p-8">
+                        <div class="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center mb-6">
+                            <span class="text-xl">📱</span>
+                        </div>
+                        <h3 class="font-display text-xl mb-4">Multi-Platform</h3>
+                        <p class="text-sm opacity-70">Web, iOS, Android, responsive design, offline-first capability, seamless sync.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery / Wireframes -->
+        <section id="gallery" class="py-32 px-6 md:px-12 border-t border-white/5">
+            <div class="max-w-7xl mx-auto">
+                <header class="mb-20">
+                    <h2 class="font-ancient text-4xl mb-4">Mobile App Wireframes</h2>
+                    <div class="w-20 h-1 bg-celestial"></div>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Screen 1 -->
+                    <div class="group relative aspect-[9/19] bg-obsidian rounded-[3rem] border-[8px] border-[#1A1A2E] overflow-hidden shadow-2xl hover:border-celestial/30 transition-all duration-500">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-[#1A1A2E] rounded-b-2xl z-20"></div>
+                        <div class="p-8 h-full flex flex-col justify-center items-center text-center relative z-10 nebula-bg">
+                            <div class="w-32 h-32 rounded-full bg-celestial/20 border border-celestial/50 animate-pulse flex items-center justify-center mb-8">
+                                <div class="w-24 h-24 rounded-full bg-celestial/40"></div>
+                            </div>
+                            <h4 class="font-ancient text-2xl mb-4">NAKSHATRA</h4>
+                            <p class="font-future text-sm opacity-60 px-4">Sync your soul with the cosmos. Tap to begin.</p>
+                        </div>
+                        <div class="absolute bottom-10 left-0 w-full text-center px-8">
+                            <p class="text-[10px] opacity-40 tracking-widest uppercase">Splash Screen</p>
+                        </div>
+                    </div>
+
+                    <!-- Screen 2 -->
+                    <div class="group relative aspect-[9/19] bg-obsidian rounded-[3rem] border-[8px] border-[#1A1A2E] overflow-hidden shadow-2xl hover:border-celestial/30 transition-all duration-500">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-[#1A1A2E] rounded-b-2xl z-20"></div>
+                        <div class="p-6 pt-12 h-full flex flex-col">
+                            <div class="flex justify-between items-center mb-8">
+                                <span class="font-ancient text-xs text-celestial">DASHBOARD</span>
+                                <div class="w-8 h-8 rounded-full border border-white/20"></div>
+                            </div>
+                            
+                            <div class="w-full aspect-square rounded-full border border-celestial/20 relative flex items-center justify-center mb-8">
+                                <div class="absolute inset-0 border border-dashed border-white/5 rounded-full"></div>
+                                <div class="w-4 h-4 bg-celestial rounded-full absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+                                <div class="w-1 h-1 bg-white rounded-full"></div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="p-4 glass-card rounded-2xl">
+                                    <p class="text-[10px] opacity-40 uppercase tracking-widest mb-1">Current Transit</p>
+                                    <p class="font-future text-sm">Moon in Shravana</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-6 left-0 w-full text-center">
+                            <p class="text-[10px] opacity-40 tracking-widest uppercase">Dashboard</p>
+                        </div>
+                    </div>
+
+                    <!-- Screen 3 -->
+                    <div class="group relative aspect-[9/19] bg-obsidian rounded-[3rem] border-[8px] border-[#1A1A2E] overflow-hidden shadow-2xl hover:border-celestial/30 transition-all duration-500">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-[#1A1A2E] rounded-b-2xl z-20"></div>
+                        <div class="p-6 pt-12 h-full flex flex-col">
+                            <h4 class="font-ancient text-xl mb-6">Cosmic Guide</h4>
+                            <div class="flex-grow space-y-4">
+                                <div class="max-w-[80%] p-3 glass-card rounded-2xl rounded-tl-none">
+                                    <p class="text-xs">How can I guide you today?</p>
+                                </div>
+                                <div class="max-w-[80%] p-3 bg-celestial/20 border border-celestial/40 rounded-2xl rounded-tr-none ml-auto">
+                                    <p class="text-xs text-celestial">My Shravana timing?</p>
+                                </div>
+                                <div class="max-w-[80%] p-3 glass-card rounded-2xl rounded-tl-none">
+                                    <p class="text-xs">Focus on strategic silence & listening.</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-4 glass-card rounded-full flex items-center justify-between">
+                                <span class="text-xs opacity-40">Ask...</span>
+                                <div class="w-6 h-6 bg-celestial rounded-full flex items-center justify-center">
+                                    <span class="text-xs">→</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-6 left-0 w-full text-center">
+                            <p class="text-[10px] opacity-40 tracking-widest uppercase">AI Chat</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Implementation Section -->
+        <section id="implementation" class="py-32 px-6 md:px-12 bg-[#05070A] border-t border-white/5">
+            <div class="max-w-7xl mx-auto">
+                <header class="mb-20">
+                    <h2 class="font-ancient text-4xl mb-4">Implementation Stack</h2>
+                    <div class="w-20 h-1 bg-celestial"></div>
+                </header>
+
+                <div class="glass-card rounded-[40px] overflow-hidden">
+                    <div class="flex border-b border-white/10 overflow-x-auto">
+                        <button onclick="switchTab('backend')" id="tab-backend" class="px-8 py-6 text-sm font-mono tracking-widest active-tab hover:text-celestial transition-colors whitespace-nowrap">Backend</button>
+                        <button onclick="switchTab('frontend')" id="tab-frontend" class="px-8 py-6 text-sm font-mono tracking-widest hover:text-celestial transition-colors whitespace-nowrap opacity-40">Frontend</button>
+                        <button onclick="switchTab('ai')" id="tab-ai" class="px-8 py-6 text-sm font-mono tracking-widest hover:text-celestial transition-colors whitespace-nowrap opacity-40">AI/ML</button>
+                    </div>
+                    <div class="p-10 font-mono text-sm leading-relaxed text-blue-200/80 bg-black/40">
+                        <pre id="code-block" class="whitespace-pre-wrap text-xs overflow-x-auto">// services/astrology-service/src/kundli/calculator.ts
+
+export const calculateKundli = async (birthData: BirthData) => {
+  // JPL Ephemeris calculation
+  const planetPositions = await jpLEphemeris.calculate({
+    date: birthData.birthTime,
+    latitude: birthData.latitude,
+    longitude: birthData.longitude,
+    timezone: birthData.timezone,
+    ayanamsa: 23.11 // Lahiri ayanamsa
+  });
+
+  // Nakshatra detection
+  const moonDegree = planetPositions.moon.degree;
+  const nakshatra = getNakshatra(moonDegree);
+
+  // Lagna calculation
+  const lagna = calculateLagna(planetPositions, birthData);
+
+  // Divisional charts
+  const vargas = calculateAllDivisionalCharts(planetPositions);
+
+  // Return complete Kundli
+  return {
+    planetPositions,
+    nakshatra,
+    lagna,
+    vargas,
+    doshas: detectDoshas(planetPositions),
+    yogas: detectYogas(planetPositions),
+    timing: new Date().toISOString()
+  };
+};
